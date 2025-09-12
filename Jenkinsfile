@@ -1,50 +1,33 @@
-pipeline {
-    agent any
 
-    environment {
-        DOCKER_COMPOSE = "docker-compose"
+
+pipeline {
+    agent {
+        docker {
+            image 'docker:24.0.2-dind'
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+        }
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: ''https://github.com/naveenpudi/prescripto_full-stack_doctor_appointment_app_Fork.git
+                git branch: 'main', url: 'https://your-repo-url.git'
             }
         }
 
-        stage('Build Images') {
+        stage('Build & Deploy') {
             steps {
-                script {
-                    sh "${DOCKER_COMPOSE} build"
-                }
+                sh 'apk add --no-cache docker-compose'  // install docker-compose in container
+                sh 'docker-compose build'
+                sh 'docker-compose down || true'
+                sh 'docker-compose up -d'
             }
         }
 
-        stage('Deploy Containers') {
+        stage('Check Containers') {
             steps {
-                script {
-                    sh "${DOCKER_COMPOSE} down"
-                    sh "${DOCKER_COMPOSE} up -d"
-                }
+                sh 'docker ps -a'
             }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                script {
-                    sh 'docker ps -a'
-                }
-            }
-        }
-    }
-
-    post {
-        failure {
-            echo "Deployment failed!"
-        }
-        success {
-            echo "Deployment completed successfully ✅"
         }
     }
 }
-
