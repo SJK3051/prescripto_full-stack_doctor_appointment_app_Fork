@@ -1,40 +1,35 @@
-version: "3.8"
+
+version: "3.9"
 
 services:
-  backend:
-    build: ./backend
-    container_name: backend
+  admin:
+    build: ./admin
+    container_name: admin_app
     ports:
-      - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=mydb
+      - "3001:3000"
     depends_on:
-      - db
+      - backend
+    networks:
+      - app_network
 
   frontend:
     build: ./frontend
-    container_name: frontend
+    container_name: frontend_app
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - app_network
 
-  db:
-    image: postgres:15-alpine
-    container_name: db
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=mydb
-    volumes:
-      - db_data:/var/lib/postgresql/data
+  backend:
+    build: ./backend
+    container_name: backend_app
     ports:
-      - "5432:5432"
+      - "5000:5000"
+    networks:
+      - app_network
 
-volumes:
-  db_data:
+networks:
+  app_network:
+    driver: bridge
