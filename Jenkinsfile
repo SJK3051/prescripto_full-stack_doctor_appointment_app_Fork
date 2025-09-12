@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://your-repo-url.git'
+                git branch: 'main', url: ''https://github.com/naveenpudi/prescripto_full-stack_doctor_appointment_app_Fork.git
             }
         }
 
