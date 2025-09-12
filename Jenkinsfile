@@ -1,41 +1,50 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_COMPOSE = "docker-compose"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/naveenpudi/prescripto_full-stack_doctor_appointment_app_Fork.git'
+                git branch: 'main', url: 'https://your-repo-url.git'
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Images') {
             steps {
                 script {
-                    sh 'docker-compose build'
+                    sh "${DOCKER_COMPOSE} build"
                 }
             }
         }
 
-        stage('Run Containers') {
+        stage('Deploy Containers') {
             steps {
                 script {
-                    sh 'docker-compose up -d'
+                    sh "${DOCKER_COMPOSE} down"
+                    sh "${DOCKER_COMPOSE} up -d"
                 }
             }
         }
 
-        stage('Post-Deployment Check') {
+        stage('Verify Deployment') {
             steps {
                 script {
-                    sh 'docker ps'
+                    sh 'docker ps -a'
                 }
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline finished!'
+        failure {
+            echo "Deployment failed!"
+        }
+        success {
+            echo "Deployment completed successfully ✅"
         }
     }
 }
+
