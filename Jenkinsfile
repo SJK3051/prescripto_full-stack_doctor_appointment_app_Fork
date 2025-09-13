@@ -11,11 +11,15 @@ pipeline {
         stage('Build & Deploy') {
             steps {
                 script {
-                    // Stop running containers if any
-                    sh 'docker-compose down'
+                    // Stop running containers if any (max 3 minutes)
+                    timeout(time: 3, unit: 'MINUTES') {
+                        sh 'docker-compose down'
+                    }
 
-                    // Build and start fresh containers
-                    sh 'docker-compose up -d --build'
+                    // Build and start fresh containers (max 10 minutes)
+                    timeout(time: 10, unit: 'MINUTES') {
+                        sh 'docker-compose up -d --build'
+                    }
                 }
             }
         }
@@ -26,8 +30,10 @@ pipeline {
             echo "✅ Deployment successful!"
         }
         failure {
-            echo "❌ Deployment failed!"
+            echo "❌ Deployment failed or timed out!"
+        }
+        always {
+            echo "⏱️ Job finished at: ${new Date()}"
         }
     }
 }
-
