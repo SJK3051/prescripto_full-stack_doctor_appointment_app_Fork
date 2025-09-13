@@ -1,35 +1,31 @@
-
 version: "3.9"
 
 services:
   admin:
     build: ./admin
-    container_name: admin_app
+    container_name: admin_service
     ports:
       - "3001:3000"
-    depends_on:
-      - backend
-    networks:
-      - app_network
-
-  frontend:
-    build: ./frontend
-    container_name: frontend_app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    networks:
-      - app_network
+    restart: unless-stopped
 
   backend:
     build: ./backend
-    container_name: backend_app
+    container_name: backend_service
     ports:
       - "5000:5000"
-    networks:
-      - app_network
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_service
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
 
 networks:
-  app_network:
+  default:
     driver: bridge
+
+
