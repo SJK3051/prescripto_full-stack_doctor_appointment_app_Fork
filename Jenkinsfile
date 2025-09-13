@@ -1,11 +1,5 @@
-
 pipeline {
     agent any
-
-    environment {
-        REGISTRY = "your-dockerhub-username"
-        APP_NAME = "your-app"
-    }
 
     stages {
         stage('Checkout') {
@@ -14,35 +8,26 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build & Deploy') {
             steps {
                 script {
-                    docker.build("${REGISTRY}/${APP_NAME}-admin", "./admin")
-                    docker.build("${REGISTRY}/${APP_NAME}-backend", "./backend")
-                    docker.build("${REGISTRY}/${APP_NAME}-frontend", "./frontend")
-                }
-            }
-        }
+                    // Stop running containers if any
+                    sh 'docker-compose down'
 
-        stage('Push Images') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    script {
-                        docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
-                            docker.image("${REGISTRY}/${APP_NAME}-admin").push("latest")
-                            docker.image("${REGISTRY}/${APP_NAME}-backend").push("latest")
-                            docker.image("${REGISTRY}/${APP_NAME}-frontend").push("latest")
-                        }
-                    }
+                    // Build and start fresh containers
+                    sh 'docker-compose up -d --build'
                 }
-            }
-        }
-
-        stage('Deploy with Docker Compose') {
-            steps {
-                sh 'docker-compose down'
-                sh 'docker-compose up -d --build'
             }
         }
     }
+
+    post {
+        success {
+            echo "✅ Deployment successful!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
+        }
+    }
 }
+
